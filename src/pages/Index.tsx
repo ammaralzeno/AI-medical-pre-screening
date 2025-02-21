@@ -110,14 +110,17 @@ const MainQuestionnaire = () => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      setIsAnalyzing(true);
       try {
+        setIsAnalyzing(true); // Set loading state before API call
         const { data, error } = await supabase.functions.invoke('analyze-symptoms', {
           body: { formData }
         });
 
         if (error) throw error;
 
+        // Small delay to ensure loading state is visible
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         setAnalysisResults(data);
         toast({
           title: "Analysis Complete",
