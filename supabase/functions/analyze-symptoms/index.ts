@@ -19,14 +19,26 @@ serve(async (req) => {
     // Format the prompt with the questionnaire data
     const prompt = `You are an AI medical pre-screening assistant. Based on the following patient information, provide a structured analysis. Return your response in JSON format with these sections: preliminaryAssessment (general overview), potentialCauses (array of possible causes), riskLevel (low, medium, or high), recommendedActions (array of next steps), and urgencyLevel (numeric 1-10).
 
-Patient Information:
+For the analysis, consider:
+1. Patient Demographics:
 - Name: ${formData.name}
 - Age: ${formData.age}
-- Main Symptom: ${formData.mainSymptom}
-- Duration: ${formData.symptomDuration}
-- Additional Details: ${formData.additionalInfo}
+- Gender: ${formData.gender}
+- Medical History: ${formData.hasMedicalConditions ? formData.medicalConditionsDetails : 'No existing conditions'}
 
-Provide your analysis in a clear, structured JSON format.`;
+2. Symptoms:
+- Pain Areas: ${formData.painAreas?.join(', ')}
+- Pain Intensity: ${formData.painIntensity}
+- Duration: ${formData.symptomDuration}
+
+3. Red Flags:
+- Numbness/Weakness: ${formData.hasNumbness ? 'Yes' : 'No'}
+- Chest Pain/Breathing Issues: ${formData.hasChestPain ? 'Yes' : 'No'}
+
+4. Additional Context:
+${formData.additionalInfo}
+
+Provide a thorough and detailed analysis considering all factors. The preliminaryAssessment should be at least 2-3 sentences long, listing 5+ potential causes, and provide at least 4-5 specific recommended actions.`;
 
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
@@ -40,11 +52,13 @@ Provide your analysis in a clear, structured JSON format.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: 'You are a medical pre-screening assistant that provides structured JSON responses.' },
           { role: 'user', content: prompt }
         ],
+        temperature: 0.7,
+        max_tokens: 2000,
         response_format: { type: "json_object" }
       }),
     });
