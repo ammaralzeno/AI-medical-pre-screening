@@ -31,30 +31,30 @@ const BodyMap = ({ selectedParts, onPartClick }: BodyMapProps) => {
   const [hoveredPart, setHoveredPart] = useState<string | null>(null);
 
   return (
-    <div className="relative w-full max-w-xl mx-auto aspect-[2/3]">
+    <div className="relative w-full max-w-xl mx-auto aspect-[3/4]">
       <svg
-        viewBox="0 0 100 150"
+        viewBox="0 0 100 100"
         className="w-full h-full"
         style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.1))" }}
       >
         <path
           d="M50,2 
-             Q70,2 70,30 
-             L70,45 
-             Q90,45 90,67
-             L90,97
-             Q90,112 80,112
-             L65,112
-             L65,147
-             Q65,148 62,148
-             L38,148
-             Q35,148 35,147
-             L35,112
-             L20,112
-             Q10,112 10,97
-             L10,67
-             Q10,45 30,45
-             L30,30
+             Q70,2 70,20 
+             L70,30 
+             Q90,30 90,45
+             L90,65
+             Q90,75 80,75
+             L65,75
+             L65,98
+             Q65,99 62,99
+             L38,99
+             Q35,99 35,98
+             L35,75
+             L20,75
+             Q10,75 10,65
+             L10,45
+             Q10,30 30,30
+             L30,20
              Q30,2 50,2"
           fill="#f8fafc"
           stroke="#94a3b8"
@@ -65,7 +65,7 @@ const BodyMap = ({ selectedParts, onPartClick }: BodyMapProps) => {
           <g key={part.id} onClick={() => onPartClick(part.id)}>
             <circle
               cx={part.coords.x}
-              cy={part.coords.y * 1.5}
+              cy={part.coords.y}
               r={part.radius}
               className={cn(
                 "cursor-pointer transition-all duration-200",
@@ -80,7 +80,7 @@ const BodyMap = ({ selectedParts, onPartClick }: BodyMapProps) => {
             />
             <circle
               cx={part.coords.x}
-              cy={part.coords.y * 1.5}
+              cy={part.coords.y}
               r={part.radius + 6}
               className="fill-transparent cursor-pointer"
               onMouseEnter={() => setHoveredPart(part.id)}
@@ -103,7 +103,7 @@ const BodyMap = ({ selectedParts, onPartClick }: BodyMapProps) => {
             )}
             style={{
               left: `${part.coords.x}%`,
-              top: `${part.coords.y * 1.5}%`,
+              top: `${part.coords.y}%`,
               cursor: "pointer",
             }}
             onClick={() => onPartClick(part.id)}
