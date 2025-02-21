@@ -6,24 +6,80 @@ import ProgressBar from "@/components/ProgressBar";
 import QuestionStep from "@/components/QuestionStep";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 const totalSteps = 4;
+
+const SelectCard = ({ selected, onClick, children, disabled = false }) => (
+  <Card
+    className={cn(
+      "p-4 cursor-pointer transition-all border-2",
+      selected ? "border-medical-500 bg-medical-50" : "border-transparent hover:border-medical-200",
+      disabled && "opacity-50 cursor-not-allowed"
+    )}
+    onClick={!disabled ? onClick : undefined}
+  >
+    {children}
+  </Card>
+);
 
 const MainQuestionnaire = () => {
   const { currentStep, setCurrentStep, formData, setFormData } = useQuestionnaire();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
 
+  const validateStep = () => {
+    const newErrors: Record<string, string> = {};
+
+    switch (currentStep) {
+      case 0:
+        if (!formData.name?.trim()) {
+          newErrors.name = "Name is required";
+        }
+        if (!formData.age) {
+          newErrors.age = "Age is required";
+        }
+        break;
+      case 1:
+        if (!formData.mainSymptom) {
+          newErrors.mainSymptom = "Please select a main symptom";
+        }
+        break;
+      case 2:
+        if (!formData.symptomDuration) {
+          newErrors.symptomDuration = "Please select symptom duration";
+        }
+        break;
+      case 3:
+        if (!formData.additionalInfo?.trim()) {
+          newErrors.additionalInfo = "Please provide additional information";
+        }
+        break;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleNext = async () => {
+    if (!validateStep()) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields before proceeding.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // This is the final step, submit the form
       setIsAnalyzing(true);
       try {
         const { data, error } = await supabase.functions.invoke('analyze-symptoms', {
@@ -32,14 +88,11 @@ const MainQuestionnaire = () => {
 
         if (error) throw error;
 
-        // Here you can handle the AI analysis response
         console.log('AI Analysis:', data);
         toast({
           title: "Analysis Complete",
           description: "Your symptoms have been analyzed successfully.",
         });
-
-        // You can store the analysis or update the UI here
       } catch (error) {
         console.error('Error analyzing symptoms:', error);
         toast({
@@ -61,6 +114,7 @@ const MainQuestionnaire = () => {
 
   const updateFormData = (data: any) => {
     setFormData({ ...formData, ...data });
+    setErrors({}); // Clear errors when user updates data
   };
 
   return (
@@ -84,7 +138,12 @@ const MainQuestionnaire = () => {
                     id="name"
                     placeholder="Enter your full name"
                     onChange={(e) => updateFormData({ name: e.target.value })}
+                    value={formData.name || ""}
+                    className={errors.name ? "border-red-500" : ""}
                   />
+                  {errors.name && (
+                    <p className="text-sm text-red-500">{errors.name}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="age">Age</Label>
@@ -93,7 +152,12 @@ const MainQuestionnaire = () => {
                     type="number"
                     placeholder="Enter your age"
                     onChange={(e) => updateFormData({ age: e.target.value })}
+                    value={formData.age || ""}
+                    className={errors.age ? "border-red-500" : ""}
                   />
+                  {errors.age && (
+                    <p className="text-sm text-red-500">{errors.age}</p>
+                  )}
                 </div>
               </div>
             </QuestionStep>
@@ -108,26 +172,28 @@ const MainQuestionnaire = () => {
             >
               <div className="space-y-4">
                 <Label>What is your main symptom?</Label>
-                <RadioGroup
-                  onValueChange={(value) => updateFormData({ mainSymptom: value })}
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="headache" id="headache" />
-                    <Label htmlFor="headache">Headache</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="fever" id="fever" />
-                    <Label htmlFor="fever">Fever</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="cough" id="cough" />
-                    <Label htmlFor="cough">Cough</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="fatigue" id="fatigue" />
-                    <Label htmlFor="fatigue">Fatigue</Label>
-                  </div>
-                </RadioGroup>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { value: "headache", label: "Headache", icon: "🤕" },
+                    { value: "fever", label: "Fever", icon: "🤒" },
+                    { value: "cough", label: "Cough", icon: "😷" },
+                    { value: "fatigue", label: "Fatigue", icon: "😪" },
+                  ].map((symptom) => (
+                    <SelectCard
+                      key={symptom.value}
+                      selected={formData.mainSymptom === symptom.value}
+                      onClick={() => updateFormData({ mainSymptom: symptom.value })}
+                    >
+                      <div className="flex flex-col items-center space-y-2">
+                        <span className="text-2xl">{symptom.icon}</span>
+                        <span className="font-medium">{symptom.label}</span>
+                      </div>
+                    </SelectCard>
+                  ))}
+                </div>
+                {errors.mainSymptom && (
+                  <p className="text-sm text-red-500">{errors.mainSymptom}</p>
+                )}
               </div>
             </QuestionStep>
           )}
@@ -140,31 +206,29 @@ const MainQuestionnaire = () => {
               onBack={handleBack}
             >
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>How long have you been experiencing these symptoms?</Label>
-                  <RadioGroup
-                    onValueChange={(value) =>
-                      updateFormData({ symptomDuration: value })
-                    }
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="lessThan24h" id="lessThan24h" />
-                      <Label htmlFor="lessThan24h">Less than 24 hours</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="fewDays" id="fewDays" />
-                      <Label htmlFor="fewDays">A few days</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="week" id="week" />
-                      <Label htmlFor="week">About a week</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="moreThanWeek" id="moreThanWeek" />
-                      <Label htmlFor="moreThanWeek">More than a week</Label>
-                    </div>
-                  </RadioGroup>
+                <Label>How long have you been experiencing these symptoms?</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { value: "lessThan24h", label: "Less than 24 hours", icon: "⏰" },
+                    { value: "fewDays", label: "A few days", icon: "📅" },
+                    { value: "week", label: "About a week", icon: "📆" },
+                    { value: "moreThanWeek", label: "More than a week", icon: "📋" },
+                  ].map((duration) => (
+                    <SelectCard
+                      key={duration.value}
+                      selected={formData.symptomDuration === duration.value}
+                      onClick={() => updateFormData({ symptomDuration: duration.value })}
+                    >
+                      <div className="flex flex-col items-center space-y-2">
+                        <span className="text-2xl">{duration.icon}</span>
+                        <span className="font-medium">{duration.label}</span>
+                      </div>
+                    </SelectCard>
+                  ))}
                 </div>
+                {errors.symptomDuration && (
+                  <p className="text-sm text-red-500">{errors.symptomDuration}</p>
+                )}
               </div>
             </QuestionStep>
           )}
@@ -176,6 +240,7 @@ const MainQuestionnaire = () => {
               onNext={handleNext}
               onBack={handleBack}
               isLastStep
+              isLoading={isAnalyzing}
             >
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -185,11 +250,18 @@ const MainQuestionnaire = () => {
                   <Textarea
                     id="description"
                     placeholder="Enter any additional information here..."
-                    className="min-h-[100px]"
+                    className={cn(
+                      "min-h-[100px]",
+                      errors.additionalInfo ? "border-red-500" : ""
+                    )}
+                    value={formData.additionalInfo || ""}
                     onChange={(e) =>
                       updateFormData({ additionalInfo: e.target.value })
                     }
                   />
+                  {errors.additionalInfo && (
+                    <p className="text-sm text-red-500">{errors.additionalInfo}</p>
+                  )}
                 </div>
               </div>
             </QuestionStep>

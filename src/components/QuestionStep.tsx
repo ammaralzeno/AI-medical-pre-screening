@@ -2,6 +2,7 @@
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 
 type QuestionStepProps = {
   title: string;
@@ -9,6 +10,7 @@ type QuestionStepProps = {
   onNext: () => void;
   onBack?: () => void;
   isLastStep?: boolean;
+  isLoading?: boolean;
 };
 
 const QuestionStep = ({
@@ -17,6 +19,7 @@ const QuestionStep = ({
   onNext,
   onBack,
   isLastStep = false,
+  isLoading = false,
 }: QuestionStepProps) => {
   return (
     <motion.div
@@ -35,6 +38,7 @@ const QuestionStep = ({
               variant="outline"
               onClick={onBack}
               className="bg-white hover:bg-gray-50"
+              disabled={isLoading}
             >
               Back
             </Button>
@@ -42,8 +46,16 @@ const QuestionStep = ({
           <Button
             onClick={onNext}
             className="ml-auto bg-medical-500 hover:bg-medical-600"
+            disabled={isLoading}
           >
-            {isLastStep ? "Submit" : "Next"}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              isLastStep ? "Submit" : "Next"
+            )}
           </Button>
         </div>
       </Card>
