@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import ResultsView from "@/components/ResultsView";
 import BodyMap from "@/components/BodyMap";
+import { Thermometer, ThermometerSun, Flame, Clock, CalendarDays, Calendar, CalendarRange } from "lucide-react";
 
 const totalSteps = 5; // Increased from 4 to 5
 
@@ -286,9 +287,21 @@ const MainQuestionnaire = () => {
                       <Label>How intense is your pain?</Label>
                       <div className="grid grid-cols-3 gap-4">
                         {[
-                          { value: "mild", label: "Mild", icon: "😐" },
-                          { value: "moderate", label: "Moderate", icon: "😣" },
-                          { value: "severe", label: "Severe", icon: "😫" },
+                          { 
+                            value: "mild", 
+                            label: "Mild", 
+                            icon: (props) => <Thermometer className="w-8 h-8 text-medical-500" {...props} /> 
+                          },
+                          { 
+                            value: "moderate", 
+                            label: "Moderate", 
+                            icon: (props) => <ThermometerSun className="w-8 h-8 text-medical-500" {...props} /> 
+                          },
+                          { 
+                            value: "severe", 
+                            label: "Severe", 
+                            icon: (props) => <Flame className="w-8 h-8 text-medical-500" {...props} /> 
+                          },
                         ].map((intensity) => (
                           <SelectCard
                             key={intensity.value}
@@ -296,7 +309,7 @@ const MainQuestionnaire = () => {
                             onClick={() => updateFormData({ painIntensity: intensity.value })}
                           >
                             <div className="flex flex-col items-center space-y-2">
-                              <span className="text-2xl">{intensity.icon}</span>
+                              <intensity.icon />
                               <span className="font-medium">{intensity.label}</span>
                             </div>
                           </SelectCard>
@@ -311,10 +324,26 @@ const MainQuestionnaire = () => {
                       <Label>How long have you been experiencing these symptoms?</Label>
                       <div className="grid grid-cols-2 gap-4">
                         {[
-                          { value: "lessThan24h", label: "Less than 24 hours", icon: "⏰" },
-                          { value: "fewDays", label: "A few days", icon: "📅" },
-                          { value: "week", label: "About a week", icon: "📆" },
-                          { value: "moreThanWeek", label: "More than a week", icon: "📋" },
+                          { 
+                            value: "lessThan24h", 
+                            label: "Less than 24 hours", 
+                            icon: (props) => <Clock className="w-8 h-8 text-medical-500" {...props} /> 
+                          },
+                          { 
+                            value: "fewDays", 
+                            label: "A few days", 
+                            icon: (props) => <CalendarDays className="w-8 h-8 text-medical-500" {...props} /> 
+                          },
+                          { 
+                            value: "week", 
+                            label: "About a week", 
+                            icon: (props) => <Calendar className="w-8 h-8 text-medical-500" {...props} /> 
+                          },
+                          { 
+                            value: "moreThanWeek", 
+                            label: "More than a week", 
+                            icon: (props) => <CalendarRange className="w-8 h-8 text-medical-500" {...props} /> 
+                          },
                         ].map((duration) => (
                           <SelectCard
                             key={duration.value}
@@ -322,7 +351,7 @@ const MainQuestionnaire = () => {
                             onClick={() => updateFormData({ symptomDuration: duration.value })}
                           >
                             <div className="flex flex-col items-center space-y-2">
-                              <span className="text-2xl">{duration.icon}</span>
+                              <duration.icon />
                               <span className="font-medium">{duration.label}</span>
                             </div>
                           </SelectCard>
