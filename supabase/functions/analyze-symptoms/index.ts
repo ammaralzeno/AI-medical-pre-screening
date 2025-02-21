@@ -20,11 +20,11 @@ serve(async (req) => {
     const prompt = `As an AI medical pre-screening assistant, analyze the following patient information and provide a comprehensive assessment. Your response must be a valid JSON object with the following structure:
 
 {
-  "preliminaryAssessment": "A detailed string with at least 3-4 sentences summarizing the patient's condition, including their demographics, symptoms, risk factors, and initial impressions",
-  "potentialCauses": ["array of at least 5 possible causes"],
-  "riskLevel": "one of: low, medium, high",
-  "recommendedActions": ["array of at least 4-5 specific recommended actions"],
-  "urgencyLevel": "number between 1-10"
+  "preliminaryAssessment": "A concise summary of the patient's condition",
+  "potentialCauses": ["array of at least 3 possible causes"],
+  "riskLevel": "low", "medium", or "high",
+  "recommendedActions": ["array of at least 3 specific recommended actions"],
+  "urgencyLevel": number from 1 to 10
 }
 
 Patient Information:
@@ -46,7 +46,7 @@ Patient Information:
 4. Additional Context:
 ${formData.additionalInfo}
 
-Remember that the preliminaryAssessment must be a detailed narrative that integrates all the above information into a coherent clinical picture. It should be at least 3-4 sentences long and include your initial clinical impressions based on the symptoms and risk factors presented.`;
+Provide a direct, clear response following the exact JSON structure specified above. The preliminaryAssessment should be a single paragraph summarizing key findings.`;
 
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
@@ -64,7 +64,7 @@ Remember that the preliminaryAssessment must be a detailed narrative that integr
         messages: [
           { 
             role: 'system', 
-            content: 'You are a medical pre-screening assistant that provides structured JSON responses. Always include a detailed preliminaryAssessment string in your response.'
+            content: 'You are a medical pre-screening assistant that provides structured JSON responses. Always include a clear preliminaryAssessment in your response.'
           },
           { role: 'user', content: prompt }
         ],
@@ -83,9 +83,21 @@ Remember that the preliminaryAssessment must be a detailed narrative that integr
 
     const analysis = JSON.parse(data.choices[0].message.content);
 
-    // Validate that preliminaryAssessment exists and is not empty
-    if (!analysis.preliminaryAssessment || typeof analysis.preliminaryAssessment !== 'string' || analysis.preliminaryAssessment.trim().length === 0) {
-      throw new Error('Invalid response: Missing preliminaryAssessment');
+    // Validate the response format
+    if (!analysis.preliminaryAssessment || typeof analysis.preliminaryAssessment !== 'string') {
+      throw new Error('Invalid response: Missing or invalid preliminaryAssessment');
+    }
+    if (!Array.isArray(analysis.potentialCauses) || analysis.potentialCauses.length < 1) {
+      throw new Error('Invalid response: Missing or invalid potentialCauses');
+    }
+    if (!['low', 'medium', 'high'].includes(analysis.riskLevel)) {
+      throw new Error('Invalid response: Invalid riskLevel');
+    }
+    if (!Array.isArray(analysis.recommendedActions) || analysis.recommendedActions.length < 1) {
+      throw new Error('Invalid response: Missing or invalid recommendedActions');
+    }
+    if (typeof analysis.urgencyLevel !== 'number' || analysis.urgencyLevel < 1 || analysis.urgencyLevel > 10) {
+      throw new Error('Invalid response: Invalid urgencyLevel');
     }
 
     return new Response(JSON.stringify(analysis), {
