@@ -11,14 +11,14 @@ type BodyPart = {
 };
 
 const bodyParts: BodyPart[] = [
-  { id: "head", name: "Head", coords: { x: 50, y: 15 }, radius: 15 },
-  { id: "neck", name: "Neck", coords: { x: 50, y: 28 }, radius: 10 },
-  { id: "chest", name: "Chest", coords: { x: 50, y: 38 }, radius: 18 },
+  { id: "head", name: "Head", coords: { x: 50, y: 12 }, radius: 15 },
+  { id: "neck", name: "Neck", coords: { x: 50, y: 25 }, radius: 10 },
+  { id: "chest", name: "Chest", coords: { x: 50, y: 35 }, radius: 18 },
   { id: "stomach", name: "Stomach", coords: { x: 50, y: 55 }, radius: 15 },
   { id: "leftArm", name: "Left Arm", coords: { x: 20, y: 40 }, radius: 12 },
   { id: "rightArm", name: "Right Arm", coords: { x: 80, y: 40 }, radius: 12 },
-  { id: "leftLeg", name: "Left Leg", coords: { x: 35, y: 80 }, radius: 15 },
-  { id: "rightLeg", name: "Right Leg", coords: { x: 65, y: 80 }, radius: 15 },
+  { id: "leftLeg", name: "Left Leg", coords: { x: 35, y: 85 }, radius: 15 },
+  { id: "rightLeg", name: "Right Leg", coords: { x: 65, y: 85 }, radius: 15 },
   { id: "back", name: "Back", coords: { x: 50, y: 45 }, radius: 16 },
 ];
 
@@ -31,30 +31,30 @@ const BodyMap = ({ selectedParts, onPartClick }: BodyMapProps) => {
   const [hoveredPart, setHoveredPart] = useState<string | null>(null);
 
   return (
-    <div className="relative w-full max-w-xl mx-auto aspect-[3/4]">
+    <div className="relative w-full max-w-xl mx-auto" style={{ height: "600px" }}>
       <svg
-        viewBox="0 0 100 100"
+        viewBox="0 0 100 120"
         className="w-full h-full"
         style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.1))" }}
       >
         <path
           d="M50,2 
-             Q70,2 70,20 
-             L70,30 
-             Q90,30 90,45
-             L90,65
-             Q90,75 80,75
-             L65,75
-             L65,98
-             Q65,99 62,99
-             L38,99
-             Q35,99 35,98
-             L35,75
-             L20,75
-             Q10,75 10,65
-             L10,45
-             Q10,30 30,30
-             L30,20
+             Q70,2 70,25 
+             L70,35 
+             Q90,35 90,55
+             L90,85
+             Q90,95 80,95
+             L65,95
+             L65,118
+             Q65,119 62,119
+             L38,119
+             Q35,119 35,118
+             L35,95
+             L20,95
+             Q10,95 10,85
+             L10,55
+             Q10,35 30,35
+             L30,25
              Q30,2 50,2"
           fill="#f8fafc"
           stroke="#94a3b8"
@@ -103,7 +103,7 @@ const BodyMap = ({ selectedParts, onPartClick }: BodyMapProps) => {
             )}
             style={{
               left: `${part.coords.x}%`,
-              top: `${part.coords.y}%`,
+              top: `${(part.coords.y / 120) * 100}%`,
               cursor: "pointer",
             }}
             onClick={() => onPartClick(part.id)}
