@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import ResultsView from "@/components/ResultsView";
 import BodyMap from "@/components/BodyMap";
 
-const totalSteps = 4;
+const totalSteps = 5; // Increased from 4 to 5
 
 const SelectCard = ({ selected, onClick, children, disabled = false }) => (
   <Card
@@ -57,6 +57,12 @@ const MainQuestionnaire = () => {
         if (!formData.gender) {
           newErrors.gender = "Gender is required";
         }
+        if (formData.hasMedicalConditions === undefined) {
+          newErrors.hasMedicalConditions = "Please indicate if you have any medical conditions";
+        }
+        if (formData.hasMedicalConditions && !formData.medicalConditionsDetails?.trim()) {
+          newErrors.medicalConditionsDetails = "Please provide details about your medical conditions";
+        }
         break;
       case 1:
         if (!formData.painAreas || formData.painAreas.length === 0) {
@@ -72,6 +78,14 @@ const MainQuestionnaire = () => {
         }
         break;
       case 3:
+        if (formData.hasNumbness === undefined) {
+          newErrors.hasNumbness = "Please indicate if you have numbness, weakness, or loss of function";
+        }
+        if (formData.hasChestPain === undefined) {
+          newErrors.hasChestPain = "Please indicate if you have chest pain or difficulty breathing";
+        }
+        break;
+      case 4:
         if (!formData.additionalInfo?.trim()) {
           newErrors.additionalInfo = "Please provide additional information";
         }
@@ -201,6 +215,38 @@ const MainQuestionnaire = () => {
                         <p className="text-sm text-red-500">{errors.gender}</p>
                       )}
                     </div>
+                    <div className="space-y-4">
+                      <Label>Do you have any existing medical conditions?</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        {["yes", "no"].map((option) => (
+                          <SelectCard
+                            key={option}
+                            selected={formData.hasMedicalConditions === (option === "yes")}
+                            onClick={() => updateFormData({ hasMedicalConditions: option === "yes" })}
+                          >
+                            <span className="capitalize">{option}</span>
+                          </SelectCard>
+                        ))}
+                      </div>
+                      {errors.hasMedicalConditions && (
+                        <p className="text-sm text-red-500">{errors.hasMedicalConditions}</p>
+                      )}
+                      {formData.hasMedicalConditions && (
+                        <div className="space-y-2">
+                          <Label htmlFor="medicalConditions">Please describe your medical conditions</Label>
+                          <Textarea
+                            id="medicalConditions"
+                            placeholder="E.g., diabetes, hypertension, asthma..."
+                            value={formData.medicalConditionsDetails || ""}
+                            onChange={(e) => updateFormData({ medicalConditionsDetails: e.target.value })}
+                            className={errors.medicalConditionsDetails ? "border-red-500" : ""}
+                          />
+                          {errors.medicalConditionsDetails && (
+                            <p className="text-sm text-red-500">{errors.medicalConditionsDetails}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </QuestionStep>
               )}
@@ -293,6 +339,53 @@ const MainQuestionnaire = () => {
               {currentStep === 3 && (
                 <QuestionStep
                   key="step4"
+                  title="Important Health Indicators"
+                  onNext={handleNext}
+                  onBack={handleBack}
+                >
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <Label>Do you have numbness, weakness, or loss of function?</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        {["yes", "no"].map((option) => (
+                          <SelectCard
+                            key={option}
+                            selected={formData.hasNumbness === (option === "yes")}
+                            onClick={() => updateFormData({ hasNumbness: option === "yes" })}
+                          >
+                            <span className="capitalize">{option}</span>
+                          </SelectCard>
+                        ))}
+                      </div>
+                      {errors.hasNumbness && (
+                        <p className="text-sm text-red-500">{errors.hasNumbness}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label>Are you experiencing chest pain or difficulty breathing?</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        {["yes", "no"].map((option) => (
+                          <SelectCard
+                            key={option}
+                            selected={formData.hasChestPain === (option === "yes")}
+                            onClick={() => updateFormData({ hasChestPain: option === "yes" })}
+                          >
+                            <span className="capitalize">{option}</span>
+                          </SelectCard>
+                        ))}
+                      </div>
+                      {errors.hasChestPain && (
+                        <p className="text-sm text-red-500">{errors.hasChestPain}</p>
+                      )}
+                    </div>
+                  </div>
+                </QuestionStep>
+              )}
+
+              {currentStep === 4 && (
+                <QuestionStep
+                  key="step5"
                   title="Additional Information"
                   onNext={handleNext}
                   onBack={handleBack}
