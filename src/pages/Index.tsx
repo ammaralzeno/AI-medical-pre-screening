@@ -215,7 +215,7 @@ const MainQuestionnaire = () => {
                   <div className="space-y-4">
                     <Label>Where do you feel pain or discomfort?</Label>
                     <p className="text-sm text-gray-500">Click on the body parts where you experience pain</p>
-                    <Card className="p-6">
+                    <Card className="p-8">
                       <BodyMap
                         selectedParts={formData.painAreas || []}
                         onPartClick={handlePainAreaClick}
