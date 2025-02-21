@@ -45,14 +45,16 @@ const QuestionStep = ({
           )}
           <Button
             onClick={onNext}
-            className="ml-auto bg-medical-500 hover:bg-medical-600"
+            className={`ml-auto bg-medical-500 hover:bg-medical-600 transition-all duration-200 ${
+              isLoading ? "opacity-80" : ""
+            }`}
             disabled={isLoading}
           >
             {isLoading ? (
-              <>
+              <div className="flex items-center">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Analyzing...
-              </>
+                <span>Analyzing...</span>
+              </div>
             ) : (
               isLastStep ? "Submit" : "Next"
             )}
