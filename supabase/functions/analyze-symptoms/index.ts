@@ -17,9 +17,17 @@ serve(async (req) => {
     const { formData } = await req.json();
     
     // Format the prompt with the questionnaire data
-    const prompt = `You are an AI medical pre-screening assistant. Based on the following patient information, provide a structured analysis. Return your response in JSON format with these sections: preliminaryAssessment (general overview), potentialCauses (array of possible causes), riskLevel (low, medium, or high), recommendedActions (array of next steps), and urgencyLevel (numeric 1-10).
+    const prompt = `As an AI medical pre-screening assistant, analyze the following patient information and provide a comprehensive assessment. Your response must be a valid JSON object with the following structure:
 
-For the analysis, consider:
+{
+  "preliminaryAssessment": "A detailed string with at least 3-4 sentences summarizing the patient's condition, including their demographics, symptoms, risk factors, and initial impressions",
+  "potentialCauses": ["array of at least 5 possible causes"],
+  "riskLevel": "one of: low, medium, high",
+  "recommendedActions": ["array of at least 4-5 specific recommended actions"],
+  "urgencyLevel": "number between 1-10"
+}
+
+Patient Information:
 1. Patient Demographics:
 - Name: ${formData.name}
 - Age: ${formData.age}
@@ -38,7 +46,7 @@ For the analysis, consider:
 4. Additional Context:
 ${formData.additionalInfo}
 
-Provide a thorough and detailed analysis considering all factors. The preliminaryAssessment should be at least 2-3 sentences long, listing 5+ potential causes, and provide at least 4-5 specific recommended actions.`;
+Remember that the preliminaryAssessment must be a detailed narrative that integrates all the above information into a coherent clinical picture. It should be at least 3-4 sentences long and include your initial clinical impressions based on the symptoms and risk factors presented.`;
 
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
@@ -54,7 +62,10 @@ Provide a thorough and detailed analysis considering all factors. The preliminar
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: 'You are a medical pre-screening assistant that provides structured JSON responses.' },
+          { 
+            role: 'system', 
+            content: 'You are a medical pre-screening assistant that provides structured JSON responses. Always include a detailed preliminaryAssessment string in your response.'
+          },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
@@ -72,12 +83,24 @@ Provide a thorough and detailed analysis considering all factors. The preliminar
 
     const analysis = JSON.parse(data.choices[0].message.content);
 
+    // Validate that preliminaryAssessment exists and is not empty
+    if (!analysis.preliminaryAssessment || typeof analysis.preliminaryAssessment !== 'string' || analysis.preliminaryAssessment.trim().length === 0) {
+      throw new Error('Invalid response: Missing preliminaryAssessment');
+    }
+
     return new Response(JSON.stringify(analysis), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error in analyze-symptoms function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      preliminaryAssessment: "Unable to generate assessment at this time. Please try again.",
+      potentialCauses: [],
+      riskLevel: "medium",
+      recommendedActions: ["Please try submitting the form again.", "If the problem persists, contact support."],
+      urgencyLevel: 5
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
