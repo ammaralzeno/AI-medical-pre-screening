@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type ResultsViewProps = {
   analysis: {
-    preliminaryAssessment: string;
+    preliminaryAssessment: { overview: string };
     potentialCauses: string[];
     riskLevel: "low" | "medium" | "high";
     recommendedActions: string[];
@@ -74,7 +74,7 @@ const ResultsView = ({ analysis, onReset }: ResultsViewProps) => {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-700">{analysis.preliminaryAssessment}</p>
+            <p className="text-gray-700">{analysis.preliminaryAssessment.overview}</p>
           </CardContent>
         </Card>
 
