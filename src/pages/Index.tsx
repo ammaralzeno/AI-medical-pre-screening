@@ -9,15 +9,47 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const totalSteps = 4;
 
 const MainQuestionnaire = () => {
   const { currentStep, setCurrentStep, formData, setFormData } = useQuestionnaire();
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const { toast } = useToast();
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
+    } else {
+      // This is the final step, submit the form
+      setIsAnalyzing(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('analyze-symptoms', {
+          body: { formData }
+        });
+
+        if (error) throw error;
+
+        // Here you can handle the AI analysis response
+        console.log('AI Analysis:', data);
+        toast({
+          title: "Analysis Complete",
+          description: "Your symptoms have been analyzed successfully.",
+        });
+
+        // You can store the analysis or update the UI here
+      } catch (error) {
+        console.error('Error analyzing symptoms:', error);
+        toast({
+          title: "Analysis Failed",
+          description: "There was an error analyzing your symptoms. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsAnalyzing(false);
+      }
     }
   };
 
