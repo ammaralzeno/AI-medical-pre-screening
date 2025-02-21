@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import ResultsView from "@/components/ResultsView";
+import BodyMap from "@/components/BodyMap";
 
 const totalSteps = 4;
 
@@ -53,13 +54,19 @@ const MainQuestionnaire = () => {
         if (!formData.age) {
           newErrors.age = "Age is required";
         }
+        if (!formData.gender) {
+          newErrors.gender = "Gender is required";
+        }
         break;
       case 1:
-        if (!formData.mainSymptom) {
-          newErrors.mainSymptom = "Please select a main symptom";
+        if (!formData.painAreas || formData.painAreas.length === 0) {
+          newErrors.painAreas = "Please select at least one area where you feel pain";
         }
         break;
       case 2:
+        if (!formData.painIntensity) {
+          newErrors.painIntensity = "Please select pain intensity";
+        }
         if (!formData.symptomDuration) {
           newErrors.symptomDuration = "Please select symptom duration";
         }
@@ -125,6 +132,14 @@ const MainQuestionnaire = () => {
     setErrors({}); // Clear errors when user updates data
   };
 
+  const handlePainAreaClick = (partId: string) => {
+    const currentPainAreas = formData.painAreas || [];
+    const updatedPainAreas = currentPainAreas.includes(partId)
+      ? currentPainAreas.filter((area: string) => area !== partId)
+      : [...currentPainAreas, partId];
+    updateFormData({ painAreas: updatedPainAreas });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-xl mx-auto">
@@ -138,7 +153,7 @@ const MainQuestionnaire = () => {
               {currentStep === 0 && (
                 <QuestionStep
                   key="step1"
-                  title="Basic Information"
+                  title="Personal Information"
                   onNext={handleNext}
                 >
                   <div className="space-y-4">
@@ -169,6 +184,23 @@ const MainQuestionnaire = () => {
                         <p className="text-sm text-red-500">{errors.age}</p>
                       )}
                     </div>
+                    <div className="space-y-2">
+                      <Label>Gender</Label>
+                      <div className="grid grid-cols-3 gap-4">
+                        {["male", "female", "other"].map((gender) => (
+                          <SelectCard
+                            key={gender}
+                            selected={formData.gender === gender}
+                            onClick={() => updateFormData({ gender })}
+                          >
+                            <span className="capitalize">{gender}</span>
+                          </SelectCard>
+                        ))}
+                      </div>
+                      {errors.gender && (
+                        <p className="text-sm text-red-500">{errors.gender}</p>
+                      )}
+                    </div>
                   </div>
                 </QuestionStep>
               )}
@@ -176,33 +208,21 @@ const MainQuestionnaire = () => {
               {currentStep === 1 && (
                 <QuestionStep
                   key="step2"
-                  title="Main Symptoms"
+                  title="Pain Location"
                   onNext={handleNext}
                   onBack={handleBack}
                 >
                   <div className="space-y-4">
-                    <Label>What is your main symptom?</Label>
-                    <div className="grid grid-cols-2 gap-4">
-                      {[
-                        { value: "headache", label: "Headache", icon: "🤕" },
-                        { value: "fever", label: "Fever", icon: "🤒" },
-                        { value: "cough", label: "Cough", icon: "😷" },
-                        { value: "fatigue", label: "Fatigue", icon: "😪" },
-                      ].map((symptom) => (
-                        <SelectCard
-                          key={symptom.value}
-                          selected={formData.mainSymptom === symptom.value}
-                          onClick={() => updateFormData({ mainSymptom: symptom.value })}
-                        >
-                          <div className="flex flex-col items-center space-y-2">
-                            <span className="text-2xl">{symptom.icon}</span>
-                            <span className="font-medium">{symptom.label}</span>
-                          </div>
-                        </SelectCard>
-                      ))}
-                    </div>
-                    {errors.mainSymptom && (
-                      <p className="text-sm text-red-500">{errors.mainSymptom}</p>
+                    <Label>Where do you feel pain or discomfort?</Label>
+                    <p className="text-sm text-gray-500">Click on the body parts where you experience pain</p>
+                    <Card className="p-6">
+                      <BodyMap
+                        selectedParts={formData.painAreas || []}
+                        onPartClick={handlePainAreaClick}
+                      />
+                    </Card>
+                    {errors.painAreas && (
+                      <p className="text-sm text-red-500">{errors.painAreas}</p>
                     )}
                   </div>
                 </QuestionStep>
@@ -215,30 +235,57 @@ const MainQuestionnaire = () => {
                   onNext={handleNext}
                   onBack={handleBack}
                 >
-                  <div className="space-y-4">
-                    <Label>How long have you been experiencing these symptoms?</Label>
-                    <div className="grid grid-cols-2 gap-4">
-                      {[
-                        { value: "lessThan24h", label: "Less than 24 hours", icon: "⏰" },
-                        { value: "fewDays", label: "A few days", icon: "📅" },
-                        { value: "week", label: "About a week", icon: "📆" },
-                        { value: "moreThanWeek", label: "More than a week", icon: "📋" },
-                      ].map((duration) => (
-                        <SelectCard
-                          key={duration.value}
-                          selected={formData.symptomDuration === duration.value}
-                          onClick={() => updateFormData({ symptomDuration: duration.value })}
-                        >
-                          <div className="flex flex-col items-center space-y-2">
-                            <span className="text-2xl">{duration.icon}</span>
-                            <span className="font-medium">{duration.label}</span>
-                          </div>
-                        </SelectCard>
-                      ))}
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <Label>How intense is your pain?</Label>
+                      <div className="grid grid-cols-3 gap-4">
+                        {[
+                          { value: "mild", label: "Mild", icon: "😐" },
+                          { value: "moderate", label: "Moderate", icon: "😣" },
+                          { value: "severe", label: "Severe", icon: "😫" },
+                        ].map((intensity) => (
+                          <SelectCard
+                            key={intensity.value}
+                            selected={formData.painIntensity === intensity.value}
+                            onClick={() => updateFormData({ painIntensity: intensity.value })}
+                          >
+                            <div className="flex flex-col items-center space-y-2">
+                              <span className="text-2xl">{intensity.icon}</span>
+                              <span className="font-medium">{intensity.label}</span>
+                            </div>
+                          </SelectCard>
+                        ))}
+                      </div>
+                      {errors.painIntensity && (
+                        <p className="text-sm text-red-500">{errors.painIntensity}</p>
+                      )}
                     </div>
-                    {errors.symptomDuration && (
-                      <p className="text-sm text-red-500">{errors.symptomDuration}</p>
-                    )}
+
+                    <div className="space-y-4">
+                      <Label>How long have you been experiencing these symptoms?</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        {[
+                          { value: "lessThan24h", label: "Less than 24 hours", icon: "⏰" },
+                          { value: "fewDays", label: "A few days", icon: "📅" },
+                          { value: "week", label: "About a week", icon: "📆" },
+                          { value: "moreThanWeek", label: "More than a week", icon: "📋" },
+                        ].map((duration) => (
+                          <SelectCard
+                            key={duration.value}
+                            selected={formData.symptomDuration === duration.value}
+                            onClick={() => updateFormData({ symptomDuration: duration.value })}
+                          >
+                            <div className="flex flex-col items-center space-y-2">
+                              <span className="text-2xl">{duration.icon}</span>
+                              <span className="font-medium">{duration.label}</span>
+                            </div>
+                          </SelectCard>
+                        ))}
+                      </div>
+                      {errors.symptomDuration && (
+                        <p className="text-sm text-red-500">{errors.symptomDuration}</p>
+                      )}
+                    </div>
                   </div>
                 </QuestionStep>
               )}
@@ -259,9 +306,9 @@ const MainQuestionnaire = () => {
                       </Label>
                       <Textarea
                         id="description"
-                        placeholder="Enter any additional information here..."
+                        placeholder="Describe when the symptoms started, what makes them better or worse, and any other relevant information..."
                         className={cn(
-                          "min-h-[100px]",
+                          "min-h-[150px]",
                           errors.additionalInfo ? "border-red-500" : ""
                         )}
                         value={formData.additionalInfo || ""}
