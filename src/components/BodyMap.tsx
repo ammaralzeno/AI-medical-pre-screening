@@ -11,15 +11,15 @@ type BodyPart = {
 };
 
 const bodyParts: BodyPart[] = [
-  { id: "head", name: "Head", coords: { x: 50, y: 15 }, radius: 12 },
-  { id: "neck", name: "Neck", coords: { x: 50, y: 25 }, radius: 8 },
-  { id: "chest", name: "Chest", coords: { x: 50, y: 35 }, radius: 15 },
-  { id: "stomach", name: "Stomach", coords: { x: 50, y: 50 }, radius: 12 },
-  { id: "leftArm", name: "Left Arm", coords: { x: 25, y: 40 }, radius: 10 },
-  { id: "rightArm", name: "Right Arm", coords: { x: 75, y: 40 }, radius: 10 },
-  { id: "leftLeg", name: "Left Leg", coords: { x: 40, y: 80 }, radius: 12 },
-  { id: "rightLeg", name: "Right Leg", coords: { x: 60, y: 80 }, radius: 12 },
-  { id: "back", name: "Back", coords: { x: 50, y: 42 }, radius: 14 },
+  { id: "head", name: "Head", coords: { x: 50, y: 15 }, radius: 15 },
+  { id: "neck", name: "Neck", coords: { x: 50, y: 28 }, radius: 10 },
+  { id: "chest", name: "Chest", coords: { x: 50, y: 38 }, radius: 18 },
+  { id: "stomach", name: "Stomach", coords: { x: 50, y: 55 }, radius: 15 },
+  { id: "leftArm", name: "Left Arm", coords: { x: 20, y: 40 }, radius: 12 },
+  { id: "rightArm", name: "Right Arm", coords: { x: 80, y: 40 }, radius: 12 },
+  { id: "leftLeg", name: "Left Leg", coords: { x: 35, y: 80 }, radius: 15 },
+  { id: "rightLeg", name: "Right Leg", coords: { x: 65, y: 80 }, radius: 15 },
+  { id: "back", name: "Back", coords: { x: 50, y: 45 }, radius: 16 },
 ];
 
 type BodyMapProps = {
@@ -31,14 +31,12 @@ const BodyMap = ({ selectedParts, onPartClick }: BodyMapProps) => {
   const [hoveredPart, setHoveredPart] = useState<string | null>(null);
 
   return (
-    <div className="relative w-full max-w-lg mx-auto aspect-[3/4]">
-      {/* Body Outline */}
+    <div className="relative w-full max-w-xl mx-auto aspect-[3/4]">
       <svg
         viewBox="0 0 100 100"
         className="w-full h-full"
         style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.1))" }}
       >
-        {/* Basic body shape */}
         <path
           d="M50,5 
              Q65,5 65,20 
@@ -63,7 +61,6 @@ const BodyMap = ({ selectedParts, onPartClick }: BodyMapProps) => {
           strokeWidth="0.5"
         />
 
-        {/* Clickable areas */}
         {bodyParts.map((part) => (
           <g key={part.id} onClick={() => onPartClick(part.id)}>
             <circle
@@ -81,11 +78,10 @@ const BodyMap = ({ selectedParts, onPartClick }: BodyMapProps) => {
               onMouseEnter={() => setHoveredPart(part.id)}
               onMouseLeave={() => setHoveredPart(null)}
             />
-            {/* Invisible larger circle for better click area */}
             <circle
               cx={part.coords.x}
               cy={part.coords.y}
-              r={part.radius + 5}
+              r={part.radius + 6}
               className="fill-transparent cursor-pointer"
               onMouseEnter={() => setHoveredPart(part.id)}
               onMouseLeave={() => setHoveredPart(null)}
@@ -94,13 +90,12 @@ const BodyMap = ({ selectedParts, onPartClick }: BodyMapProps) => {
         ))}
       </svg>
 
-      {/* Labels */}
       <div className="absolute inset-0">
         {bodyParts.map((part) => (
           <div
             key={part.id}
             className={cn(
-              "absolute transform -translate-x-1/2 -translate-y-1/2 px-2 py-1 rounded-md text-sm font-medium transition-all duration-200",
+              "absolute transform -translate-x-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-200",
               selectedParts.includes(part.id)
                 ? "bg-medical-100 text-medical-700"
                 : "bg-transparent text-gray-500",
