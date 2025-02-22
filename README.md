@@ -1,4 +1,4 @@
-# Worlds shortest hackathon
+# Worlds shortest hackathon finalist contribution
 
 ## Lovable x Northzone x a16z
 
